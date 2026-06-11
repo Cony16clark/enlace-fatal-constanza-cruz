@@ -1,8 +1,8 @@
-/* Reinicio básico y centrado del juego */
+/* Reset básico y centrado absoluto del juego en pantalla */
 body {
     margin: 0;
     padding: 0;
-    background-color: #121212;
+    background-color: #0d0d0d;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -11,26 +11,27 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Estilo para el lienzo/canvas de p5.js */
+/* Contenedor del lienzo/canvas generado por p5.js */
 canvas {
     display: block;
-    box-shadow: 0 0 35px rgba(0, 0, 0, 0.8);
-    border-radius: 4px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+    border-radius: 6px;
 }
 
-/* Cuadro de texto con instrucciones en la parte inferior */
+/* Cuadro de instrucciones flotante en la zona inferior */
 #instrucciones {
     position: absolute;
     bottom: 25px;
     color: rgba(255, 255, 255, 0.75);
-    background: rgba(20, 20, 20, 0.85);
+    background: rgba(15, 15, 15, 0.9);
     padding: 12px 24px;
     border-radius: 30px;
     font-size: 14px;
     text-align: center;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    pointer-events: none; /* No interfiere con los clics en el juego */
+    pointer-events: none; /* No interfiere con los clics en el canvas */
     user-select: none;
+    opacity: 0; /* Empieza oculto y se activa vía JS al iniciar la partida */
+    transition: opacity 0.3s ease-in-out;
 }
