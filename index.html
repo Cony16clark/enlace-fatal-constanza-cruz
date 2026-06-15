@@ -3,436 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Árbol Infinito - Cyber Escape</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
-    
+    <title>Enlace Fatal - Árbol Infinito</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #0d0d0d;
+            background-color: #1E1E1E;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
+            user-select: none;
         }
-
         canvas {
             display: block;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
-            border-radius: 6px;
         }
-
-        #instrucciones {
+        #ui-instrucciones {
             position: absolute;
-            bottom: 25px;
-            color: rgba(255, 255, 255, 0.75);
-            background: rgba(15, 15, 15, 0.9);
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            background: rgba(0, 0, 0, 0.85);
             padding: 12px 24px;
             border-radius: 30px;
+            pointer-events: none;
             font-size: 14px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            pointer-events: none;
-            user-select: none;
-            transition: opacity 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.5;
+            z-index: 999;
         }
     </style>
 </head>
 <body>
 
-    <div id="instrucciones" style="opacity: 0;">
-        🏃‍♂️ <b>¡Rápido!</b> Conecta los nodos hacia arriba | 🖱️ <b>Rueda del Mouse</b> para hacer Scroll
-    </div>
+<div id="ui-instrucciones">
+    👆 <b>Clic Izquierdo</b> en hexágonos vacíos para expandir | 🖱️ <b>Arrastrar Fondo</b> para mover la pantalla <br>
+    🎛️ <b>Rueda del Mouse</b> para hacer Zoom (Acercar / Alejar)
+</div>
 
-    <script>
-        // Variables del Juego
-        let nodos = [];
-        let lineas = [];
-        let tamanoHex = 25; 
+<script>
+const sketch = (p) => {
+    let nodos = [];
+    let lineas = [];
+    let tamanoHex = 25; 
 
-        // Variables de la Cámara y Scroll
-        let camaraY = 0;
-        let destinoCamaraY = 0; 
+    // Sistema de Cámara Avanzado (Posición + Zoom)
+    let camaraX = 0, camaraY = 0;
+    let destinoCamX = 0, destinoCamY = 0;
+    let zoom = 1.0;
+    let destinoZoom = 1.0;
 
-        // Configuración de la Meta y Enemigo
-        let alturaMeta = -1600; 
-        let nodoMeta = null;
-        let estadoJuego = "MENU"; // Estados: "MENU", "JUGANDO", "VICTORIA", "DERROTA"
+    const COLORES_FIGMA = {
+        rojo: '#FF2400',
+        verde: '#00FF00',
+        morado: '#B04FFF',
+        azul: '#2B2BFF'
+    };
 
-        let enemigoY; 
-        let velocidadEnemigo = 1.0; 
+    p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        
+        // Centrar el mapa al inicio
+        camaraX = p.windowWidth / 2;
+        camaraY = p.windowHeight / 2;
+        destinoCamX = camaraX;
+        destinoCamY = camaraY;
 
-        // Configuración de los Botones del Menú (Rombos/Hexágonos)
-        let botonesMenu = [];
+        // Nodo central estable
+        let nodoCentral = {
+            id: 0,
+            x: 0, 
+            y: 0,
+            tipo: 'tronco',
+            color: 'rgba(255, 255, 255, 0.15)', 
+            hijosMax: 6
+        };
+        nodos.push(nodoCentral);
+        
+        generarSeisIniciales(nodoCentral);
+    };
 
-        function setup() {
-            createCanvas(600, 850);
+    p.draw = () => {
+        p.background('#1E1E1E'); 
+        
+        // Suavizado cinemático de movimiento y zoom (Lerp)
+        camaraX = p.lerp(camaraX, destinoCamX, 0.1);
+        camaraY = p.lerp(camaraY, destinoCamY, 0.1);
+        zoom = p.lerp(zoom, destinoZoom, 0.1);
+
+        // Rejilla de fondo adaptada al Zoom
+        dibujarCuadrículaInfinita();
+
+        p.push();
+        // Aplicar transformaciones espaciales de la cámara
+        p.translate(camaraX, camaraY);
+        p.scale(zoom);
+
+        // Convertir coordenadas del mouse considerando posición y escala actual
+        let mouseMundialX = (p.mouseX - camaraX) / zoom;
+        let mouseMundialY = (p.mouseY - camaraY) / zoom;
+
+        // 1. RENDERIZAR CONEXIONES
+        p.strokeWeight(3 / zoom); // Mantiene el grosor estilizado sin importar el zoom
+        for (let l of lineas) {
+            let medX = (l.p1.x + l.p2.x) / 2;
+            let medY = (l.p1.y + l.p2.y) / 2;
             
-            // Definir posiciones y datos de los 3 rombos del menú de dificultad
-            botonesMenu = [
-                { x: width / 2 - 140, y: height / 2 + 80, texto: "NOVATO", vel: 0.85, color: '#4ecdc4', radio: 55 },
-                { x: width / 2,       y: height / 2 + 80, texto: "EXPERTO", vel: 1.30, color: '#a29bfe', radio: 55 },
-                { x: width / 2 + 140, y: height / 2 + 80, texto: "HACKER", vel: 1.85, color: '#ff6b6b', radio: 55 }
-            ];
-        }
-
-        function inicializarJuego(velSeleccionada) {
-            nodos = [];
-            lineas = [];
-            camaraY = 0;
-            destinoCamaraY = 0;
-            velocidadEnemigo = velSeleccionada;
-            estadoJuego = "JUGANDO";
-            
-            // Mostrar instrucciones flotantes solo al jugar
-            document.getElementById('instrucciones').style.opacity = "1";
-
-            // El enemigo inicia abajo
-            enemigoY = height - 50;
-
-            // Nodo raíz inicial
-            let nodoInicial = {
-                x: width / 2,
-                y: height - 150,
-                tipo: 'tronco',
-                color: color('#a0a0a0')
-            };
-            nodos.push(nodoInicial);
-            ramificar(nodoInicial);
-
-            // Colocar la Meta Dorada
-            nodoMeta = {
-                x: width / 2,
-                y: alturaMeta,
-                tipo: 'meta',
-                color: color('#ffd700') 
-            };
-            nodos.push(nodoMeta);
-        }
-
-        function draw() {
-            background(21); // Fondo oscuro tipo interfaz cibernética
-
-            if (estadoJuego === "MENU") {
-                dibujarMenuInicio();
+            if (l.p1.tipo !== 'vacio' && l.p2.tipo !== 'vacio') {
+                p.stroke(255, 180); 
             } else {
-                // --- MODO JUEGO ACTIVO ---
-                camaraY = lerp(camaraY, destinoCamaraY, 0.1);
-                dibujarCuadrícula();
+                p.stroke(255, 45);  
+            }
 
-                if (estadoJuego === "JUGANDO") {
-                    enemigoY -= velocidadEnemigo;
+            p.noFill();
+            p.beginShape();
+            p.vertex(l.p1.x, l.p1.y);
+            p.vertex(medX + (l.p1.x < l.p2.x ? -10 : 10), (l.p1.y + medY) / 2); 
+            p.vertex(medX, medY);
+            p.vertex(l.p2.x, l.p2.y);
+            p.endShape();
+        }
 
-                    // Validar si la corrupción te alcanza
-                    let nodoMasAltoJugador = height;
-                    for (let n of nodos) {
-                        if ((n.tipo === 'color' || n.tipo === 'tronco') && n.y < nodoMasAltoJugador) {
-                            nodoMasAltoJugador = n.y;
-                        }
-                    }
-                    if (enemigoY < nodoMasAltoJugador + tamanoHex) {
-                        estadoJuego = "DERROTA";
-                    }
+        // 2. RENDERIZAR NODOS
+        for (let n of nodos) {
+            if (n.tipo === 'vacio') {
+                p.stroke('rgba(255,255,255,0.25)');
+                p.strokeWeight(2 / zoom);
+                p.noFill();
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                
+                // Hover adaptativo
+                if (p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
+                    p.fill('rgba(255,255,255,0.15)');
+                    dibujarHexagono(n.x, n.y, tamanoHex - 4);
                 }
+            } else if (n.tipo === 'tronco') {
+                p.stroke('rgba(255, 255, 255, 0.4)');
+                p.strokeWeight(2 / zoom);
+                p.fill(n.color);
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                p.fill(255, 120);
+                p.noStroke();
+                p.ellipse(n.x, n.y, 6, 6);
+            } else {
+                p.stroke('#FFFFFF');
+                p.strokeWeight(2 / zoom);
+                p.fill(n.color);
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                
+                p.fill(255, 200);
+                p.noStroke();
+                p.ellipse(n.x, n.y, 7, 7);
+            }
+        }
+        p.pop();
 
-                // Renderizar el mundo con la cámara aplicada
-                push();
-                translate(0, camaraY);
+        // Arrastre libre de pantalla (Moverse al arrastrar el fondo con clic)
+        if (p.mouseIsPressed) {
+            if (p.mouseButton === p.RIGHT || p.mouseButton === p.CENTER || !sobreCualquierNodo(mouseMundialX, mouseMundialY)) {
+                destinoCamX += p.mouseX - p.pmouseX;
+                destinoCamY += p.mouseY - p.pmouseY;
+            }
+        }
+    };
 
-                // 1. Líneas de conexión
-                strokeWeight(3);
-                for (let l of lineas) {
-                    let medX = (l.p1.x + l.p2.x) / 2;
-                    let medY = (l.p1.y + l.p2.y) / 2;
+    // Registrar Clics para activar nodos
+    p.mousePressed = () => {
+        if (p.mouseButton === p.LEFT) {
+            let mouseMundialX = (p.mouseX - camaraX) / zoom;
+            let mouseMundialY = (p.mouseY - camaraY) / zoom;
+
+            for (let n of nodos) {
+                if (n.tipo === 'vacio' && p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
+                    let opciones = [
+                        { color: COLORES_FIGMA.rojo, hijos: 1 },
+                        { color: COLORES_FIGMA.verde, hijos: 2 },
+                        { color: COLORES_FIGMA.azul, hijos: 3 },
+                        { color: COLORES_FIGMA.morado, hijos: 4 }
+                    ];
                     
-                    if (l.p1.tipo !== 'vacio' && l.p2.tipo !== 'vacio') {
-                        stroke(255, 210); 
-                    } else {
-                        stroke(255, 50);  
-                    }
-                    noFill();
-                    beginShape();
-                    vertex(l.p1.x, l.p1.y);
-                    vertex(medX + (l.p1.x < l.p2.x ? -12 : 12), (l.p1.y + medY) / 2); 
-                    vertex(medX, medY);
-                    vertex(l.p2.x, l.p2.y);
-                    endShape();
-                }
-
-                // 2. Capa visual del enemigo (Infección roja)
-                noStroke();
-                fill(255, 30, 30, 85); 
-                rect(0, enemigoY, width, height - enemigoY + 2000);
-                
-                stroke(255, 60, 60);
-                strokeWeight(4);
-                for (let x = 0; x < width; x += 20) {
-                    line(x, enemigoY + sin(frameCount * 0.12 + x) * 6, x + 20, enemigoY + sin(frameCount * 0.12 + x + 20) * 6);
-                }
-
-                // 3. Nodos
-                for (let n of nodos) {
-                    let mouseMundialY = mouseY - camaraY;
-
-                    if (n.tipo === 'vacio') {
-                        stroke(255, 110);
-                        strokeWeight(2);
-                        noFill();
-                        dibujarHexagono(n.x, n.y, tamanoHex);
-                        
-                        if (estadoJuego === "JUGANDO" && dist(mouseX, mouseMundialY, n.x, n.y) < tamanoHex) {
-                            fill(255, 45);
-                            dibujarHexagono(n.x, n.y, tamanoHex - 4);
-                        }
-                    } else if (n.tipo === 'meta') {
-                        stroke(255, 215, 0);
-                        strokeWeight(3);
-                        fill(n.color);
-                        dibujarHexagono(n.x, n.y, tamanoHex + 12);
-                        
-                        fill(255, 255, 255, 120 + sin(frameCount * 0.15) * 60);
-                        dibujarHexagono(n.x, n.y, tamanoHex);
-                    } else {
-                        stroke(255);
-                        strokeWeight(2);
-                        fill(n.color);
-                        dibujarHexagono(n.x, n.y, tamanoHex);
-                        
-                        fill(255, 160);
-                        noStroke();
-                        ellipse(n.x, n.y, 8, 8);
-                    }
-                }
-                pop();
-
-                // UI Modales de Fin
-                if (estadoJuego === "VICTORIA") {
-                    dibujarPantallaFin("¡VICTORIA!", "Lograste hackear el sistema y asegurar el núcleo dorado.", color('#4ecdc4'));
-                } else if (estadoJuego === "DERROTA") {
-                    dibujarPantallaFin("CONEXIÓN PERDIDA", "La ramificación corrupta sobreescribió tus datos.", color('#ff6b6b'));
+                    let seleccion = p.random(opciones);
+                    n.tipo = 'color';
+                    n.color = seleccion.color;
+                    n.hijosMax = seleccion.hijos; 
+                    
+                    ramificar(n);
+                    break;
                 }
             }
         }
+    };
 
-        // --- PANTALLA DE INICIO (MENÚ) ---
-        function dibujarMenuInicio() {
-            // Reutilizar la cuadrícula estática de fondo para estética de datos
-            stroke(255, 6);
-            for (let y = 0; y < height; y += 80) line(0, y, width, y);
-            for (let x = 0; x < width; x += 80) line(x, 0, x, height);
+    // Control del ZOOM mediante la rueda del mouse
+    p.mouseWheel = (event) => {
+        let factorZoom = event.delta > 0 ? 0.9 : 1.1;
+        destinoZoom = p.constrain(destinoZoom * factorZoom, 0.3, 3.0); // Límites del Zoom
+        return false; // Previene el scroll nativo de la web
+    };
 
-            textAlign(CENTER, CENTER);
+    // Helper para saber si el mouse está pulsando un nodo o el fondo vacío
+    function sobreCualquierNodo(mx, my) {
+        for (let n of nodos) {
+            if (p.dist(mx, my, n.x, n.y) < tamanoHex) return true;
+        }
+        return false;
+    }
+
+    function generarSeisIniciales(nodoPadre) {
+        let distancia = 90; 
+        for (let i = 0; i < 6; i++) {
+            let angulo = (p.TWO_PI / 6) * i + p.HALF_PI;
+            let nuevoX = nodoPadre.x + p.cos(angulo) * distancia;
+            let nuevoY = nodoPadre.y + p.sin(angulo) * distancia;
+
+            let nuevoNodo = {
+                id: nodos.length + i + 1,
+                x: nuevoX,
+                y: nuevoY,
+                tipo: 'vacio',
+                color: '#000000',
+                hijosMax: 0,
+                padreX: nodoPadre.x,
+                padreY: nodoPadre.y
+            };
+
+            nodos.push(nuevoNodo);
+            lineas.push({ p1: nodoPadre, p2: nuevoNodo });
+        }
+    }
+
+    function ramificar(nodoPadre) {
+        let cantidadRamas = nodoPadre.hijosMax;
+        let distancia = 90; 
+        
+        let anguloBase = p.atan2(nodoPadre.y - (nodoPadre.padreY || 0), nodoPadre.x - (nodoPadre.padreX || 0));
+        if(nodoPadre.padreX === undefined) anguloBase = p.random(p.TWO_PI);
+
+        let ramasCreadas = 0;
+        let intentosAngulo = 0;
+        
+        while (ramasCreadas < cantidadRamas && intentosAngulo < 12) {
+            let division = p.TWO_PI / 6;
+            let anguloPropuesto = anguloBase + (intentosAngulo * division) + p.random(-0.05, 0.05);
             
-            // Decoración Geométrica de Fondo del Menú
-            noFill();
-            stroke(255, 15);
-            strokeWeight(1);
-            dibujarHexagono(width / 2, height / 2 - 130, 160);
+            let nuevoX = nodoPadre.x + p.cos(anguloPropuesto) * distancia;
+            let nuevoY = nodoPadre.y + p.sin(anguloPropuesto) * distancia;
 
-            // Título Principal
-            noStroke();
-            fill(255);
-            textSize(42);
-            textStyle(BOLD);
-            text("INF-ARBOL", width / 2, height / 2 - 160);
-            
-            fill('#a29bfe');
-            textSize(16);
-            textStyle(NORMAL);
-            text("CYBER INTERACTIVE SYSTEM", width / 2, height / 2 - 110);
-
-            // Subtítulo de selección
-            fill(200);
-            textSize(14);
-            text("SELECCIONA TU NIVEL DE ACCESO", width / 2, height / 2 - 10);
-
-            // Dibujar los Rombos de Selección de Dificultad
-            for (let btn of botonesMenu) {
-                let d = dist(mouseX, mouseY, btn.x, btn.y);
-                let esHover = (d < btn.radio);
-
-                if (esHover) {
-                    // Rombo con brillo al pasar el mouse
-                    stroke(btn.color);
-                    strokeWeight(3);
-                    fill(red(color(btn.color)), green(color(btn.color)), blue(color(btn.color)), 45);
-                    dibujarHexagono(btn.x, btn.y, btn.radio + 4);
-                } else {
-                    // Rombo normal
-                    stroke(255, 120);
-                    strokeWeight(1.5);
-                    fill(30);
-                    dibujarHexagono(btn.x, btn.y, btn.radio);
-                }
-
-                // Texto dentro del Rombo
-                noStroke();
-                if (esHover) fill(255); 
-                else fill(210);
-                
-                textSize(13);
-                textStyle(BOLD);
-                text(btn.texto, btn.x, btn.y - 8);
-                
-                // Pequeña etiqueta de velocidad abajo del texto principal
-                textSize(9);
-                textStyle(NORMAL);
-                fill(esHover ? btn.color : 'rgba(255,255,255,0.4)');
-                let modoVel = btn.texto === "NOVATO" ? "VEL: MEDIA" : btn.texto === "EXPERTO" ? "VEL: ALTA" : "VEL: ULTRA";
-                text(modoVel, btn.x, btn.y + 12);
-            }
-        }
-
-        // CONTROL DE ACCIONES DE CLIC
-        function mousePressed() {
-            // CLIC EN EL MENÚ DE INICIO
-            if (estadoJuego === "MENU" && mouseButton === LEFT) {
-                for (let btn of botonesMenu) {
-                    if (dist(mouseX, mouseY, btn.x, btn.y) < btn.radio) {
-                        inicializarJuego(btn.vel);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            // CLIC EN EL JUEGO ACTIVO
-            if (estadoJuego === "JUGANDO" && mouseButton === LEFT) {
-                let mouseMundialY = mouseY - camaraY;
-
-                for (let n of nodos) {
-                    if (n.tipo === 'vacio' && dist(mouseX, mouseMundialY, n.x, n.y) < tamanoHex) {
-                        let colores = [color('#4ecdc4'), color('#ff6b6b'), color('#a29bfe')];
-                        n.tipo = 'color';
-                        n.color = random(colores);
-                        
-                        ramificar(n);
-
-                        if (mouseY < height / 2) {
-                            destinoCamaraY += 145;
-                        }
-                        break; 
-                    }
-                }
-
-                if (dist(mouseX, mouseMundialY, nodoMeta.x, nodoMeta.y) < tamanoHex * 3) {
-                    for (let n of nodos) {
-                        if (n.tipo === 'color' && dist(n.x, n.y, nodoMeta.x, nodoMeta.y) < 160) {
-                            lineas.push({ p1: n, p2: nodoMeta });
-                            estadoJuego = "VICTORIA";
-                            break;
-                        }
-                    }
+            let superpuesto = false;
+            for (let existente of nodos) {
+                if (p.dist(nuevoX, nuevoY, existente.x, existente.y) < tamanoHex * 2.1) {
+                    superpuesto = true;
+                    break;
                 }
             }
-        }
 
-        // CONTROL DEL SCROLL
-        function mouseWheel(event) {
-            if (estadoJuego === "MENU") return;
-            destinoCamaraY -= event.delta * 0.85;
-            if (destinoCamaraY < 0) destinoCamaraY = 0;
-            return false; 
-        }
-
-        // REINICIAR (Regresa al Menú)
-        function keyPressed() {
-            if ((estadoJuego === "VICTORIA" || estadoJuego === "DERROTA") && keyCode === ENTER) {
-                document.getElementById('instrucciones').style.opacity = "0";
-                estadoJuego = "MENU";
-            }
-        }
-
-        // RAMIFICACIÓN DE NODOS
-        function ramificar(nodoPadre) {
-            if (nodoPadre.y < alturaMeta + 120) return; 
-
-            let cantidadRamas = floor(random(1, 4)); 
-            let angulos = [-QUARTER_PI, -HALF_PI, -3 * QUARTER_PI]; 
-            angulos = shuffle(angulos);
-
-            for (let i = 0; i < cantidadRamas; i++) {
-                let distancia = random(95, 135);
-                let angulo = angulos[i];
-                
-                let nuevoX = nodoPadre.x + cos(angulo) * distancia;
-                let nuevoY = nodoPadre.y + sin(angulo) * distancia;
-
-                if (nuevoX < 60 || nuevoX > width - 60) continue;
-
+            if (!superpuesto) {
                 let nuevoNodo = {
+                    id: nodos.length + 1,
                     x: nuevoX,
                     y: nuevoY,
                     tipo: 'vacio',
-                    color: color(0)
+                    color: '#000000',
+                    hijosMax: 0,
+                    padreX: nodoPadre.x,
+                    padreY: nodoPadre.y
                 };
 
-                let superpuesto = false;
-                for (let existente of nodos) {
-                    if (dist(nuevoX, nuevoY, existente.x, existente.y) < tamanoHex * 2.1) {
-                        superpuesto = true;
-                        break;
-                    }
-                }
-
-                if (!superpuesto) {
-                    nodos.push(nuevoNodo);
-                    lineas.push({ p1: nodoPadre, p2: nuevoNodo });
-                }
+                nodos.push(nuevoNodo);
+                lineas.push({ p1: nodoPadre, p2: nuevoNodo });
+                ramasCreadas++;
             }
+            intentosAngulo++;
         }
+    }
 
-        // DIBUJAR FORMACIÓN DE ROMBOS / HEXÁGONOS
-        function dibujarHexagono(x, y, radio) {
-            beginShape();
-            for (let a = 0; a < TWO_PI; a += TWO_PI / 6) {
-                let hx = x + cos(a + HALF_PI / 3) * radio;
-                let hy = y + sin(a + HALF_PI / 3) * radio;
-                vertex(hx, hy);
-            }
-            endShape(CLOSE);
+    function dibujarHexagono(x, y, radio) {
+        p.beginShape();
+        for (let a = 0; a < p.TWO_PI; a += p.TWO_PI / 6) {
+            let hx = x + p.cos(a + p.HALF_PI) * radio;
+            let hy = y + p.sin(a + p.HALF_PI) * radio;
+            p.vertex(hx, hy);
         }
+        p.endShape(p.CLOSE);
+    }
 
-        function dibujarCuadrícula() {
-            stroke(255, 7);
-            let inicioY = camaraY % 100;
-            for (let y = inicioY; y < height; y += 100) {
-                line(0, y, width, y);
-            }
+    function dibujarCuadrículaInfinita() {
+        p.stroke('rgba(255, 255, 255, 0.025)');
+        p.strokeWeight(1);
+        
+        let paso = 80 * zoom; 
+        let inicioX = camaraX % paso;
+        let inicioY = camaraY % paso;
+        
+        for (let x = inicioX; x < p.width; x += paso) {
+            p.line(x, 0, x, p.height);
         }
-
-        function dibujarPantallaFin(titulo, subtitulo, colorTema) {
-            fill(0, 0, 0, 210);
-            noStroke();
-            rect(0, 0, width, height);
-
-            fill(25);
-            stroke(colorTema);
-            strokeWeight(2);
-            rect(width / 2 - 200, height / 2 - 120, 400, 240, 12);
-
-            textAlign(CENTER, CENTER);
-            noStroke();
-            fill(colorTema);
-            textSize(32);
-            textStyle(BOLD);
-            text(titulo, width / 2, height / 2 - 50);
-
-            fill(210);
-            textSize(14);
-            textStyle(NORMAL);
-            text(subtitulo, width / 2 - 170, height / 2 - 10, 340, 60);
-
-            fill(255, 150);
-            textSize(12);
-            text("Presiona [ ENTER ] para volver al menú principal", width / 2, height / 2 + 75);
+        for (let y = inicioY; y < p.height; y += paso) {
+            p.line(0, y, p.width, y);
         }
-    </script>
+    }
+
+    p.windowWidthResized = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+};
+
+let miEnlaceFatal = new p5(sketch);
+document.oncontextmenu = function() { return false; }
+</script>
 
 </body>
 </html>
