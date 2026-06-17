@@ -70,4 +70,102 @@ h1 span:hover{
     color:white;
     font-size:50px;
     cursor:pointer;
+}/* CONTENEDOR DEL TÍTULO */
+.hero{
+    position:relative;
+}/* HEXÁGONOS TECNOLÓGICOS */
+
+.formas-fondo{
+    position:absolute;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:1;
 }
+
+/* HEXÁGONO BASE */
+.hexagono{
+    position:absolute;
+    width:140px;
+    height:80px;
+    border:2px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.02);
+    animation:flotarHex 8s ease-in-out infinite;
+}
+
+.hexagono::before,
+.hexagono::after{
+    content:"";
+    position:absolute;
+    width:98px;
+    height:98px;
+    border-left:2px solid rgba(255,255,255,.12);
+    border-right:2px solid rgba(255,255,255,.12);
+    left:19px;
+}
+
+.hexagono::before{
+    top:-49px;
+    transform:rotate(60deg);
+}
+
+.hexagono::after{
+    top:-49px;
+    transform:rotate(-60deg);
+}
+
+/* POSICIONES */
+
+.hex1{
+    top:15%;
+    left:10%;
+    transform:scale(1.2);
+}
+
+.hex2{
+    top:22%;
+    right:12%;
+    transform:scale(.9);
+}
+
+.hex3{
+    top:55%;
+    left:12%;
+    transform:scale(1.5);
+}
+
+.hex4{
+    top:65%;
+    right:18%;
+    transform:scale(1.1);
+}
+
+.hex5{
+    top:35%;
+    left:42%;
+    transform:scale(.8);
+}
+
+.hex6{
+    top:12%;
+    left:55%;
+    transform:scale(1.4);
+}
+
+/* ANIMACIÓN */
+
+@keyframes flotarHex{
+    0%{
+        transform:translateY(0px);
+    }
+    50%{
+        transform:translateY(-18px);
+    }
+    100%{
+        transform:translateY(0px);
+    }
+}
+
