@@ -1,317 +1,414 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enlace Fatal - Árbol Infinito</title>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1E1E1E;
-            overflow: hidden;
-            font-family: sans-serif;
-            user-select: none;
-        }
-        canvas {
-            display: block;
-        }
-        #ui-instrucciones {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255,255,255,0.8);
-            background: rgba(0, 0, 0, 0.85);
-            padding: 12px 24px;
-            border-radius: 30px;
-            pointer-events: none;
-            font-size: 14px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            line-height: 1.5;
-            z-index: 999;
-        }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div id="ui-instrucciones">
-    👆 <b>Clic Izquierdo</b> en hexágonos vacíos para expandir | 🖱️ <b>Arrastrar Fondo</b> para mover la pantalla <br>
-    🎛️ <b>Rueda del Mouse</b> para hacer Zoom (Acercar / Alejar)
+<title>Enlace Fatal</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#000;
+    color:white;
+    font-family:Arial, Helvetica, sans-serif;
+    overflow-x:hidden;
+}
+
+/* SISTEMA DE VISTAS (PÁGINAS) */
+.vista {
+    display: none;
+    min-height: 100vh;
+}
+
+.vista.activa {
+    display: flex;
+    flex-direction: column;
+}
+
+/* HERO */
+.hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:80px 40px;
+    position:relative;
+}
+
+/* TITULO */
+h1{
+    font-size:clamp(3rem,8vw,6rem);
+    letter-spacing:10px;
+    margin-top:80px;
+    margin-bottom:150px;
+}
+
+/* Efecto individual por letra al pasar el cursor */
+h1 span {
+    display: inline-block;
+    transition: .3s;
+    cursor: default;
+}
+
+h1 span:hover{
+    color:#7dffae;
+    text-shadow:
+    0 0 10px #7dffae,
+    0 0 20px #7dffae,
+    0 0 40px #7dffae;
+    transform: translateY(-5px);
+}
+
+/* LOGO */
+.logo{
+    width:120px;
+    margin-bottom:80px;
+    animation:flotar 4s ease-in-out infinite;
+}
+
+/* DESCRIPCIÓN */
+.descripcion{
+    max-width:900px;
+    font-size:1.4rem;
+    line-height:1.8;
+    color:#c8c8c8;
+    margin-bottom:80px;
+}
+
+/* BOTON */
+button{
+    padding:15px 35px;
+    border:none;
+    border-radius:40px;
+    font-size:1rem;
+    cursor:pointer;
+    transition:.3s;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+}
+
+button:hover{
+    transform:scale(1.05);
+    background-color: #7dffae;
+}
+
+/* GALERIA INTERACTIVA COPIADA */
+.galeria{
+    display:none;
+    padding:80px 10%;
+    gap:40px;
+    flex-wrap:wrap;
+    justify-content:center;
+    background: #050505;
+}
+
+.galeria.mostrar{
+    display:flex;
+}
+
+.card{
+    width:220px;
+    transition:.4s;
+    cursor: pointer;
+}
+
+.card img{
+    width:100%;
+    display:block;
+}
+
+.card:hover{
+    transform:scale(1.08);
+    filter:
+    drop-shadow(0 0 8px #7dffae)
+    drop-shadow(0 0 20px #7dffae);
+}
+
+/* FONDO DECORATIVO CONSERVADO */
+.circuito{
+    position:absolute;
+    opacity:.15;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    top: 0;
+    left: 0;
+}
+
+/* SECCIÓN RECTÁNGULOS */
+.seccion-rectangulos{
+    width:100%;
+    padding:250px 20px 120px;
+    background:#000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* COLUMNA VERTICAL */
+.fila-rectangulos{
+    display:flex;
+    flex-direction:column;
+    gap:60px;
+    width:100%;
+    max-width:900px;
+    align-items:center;
+}
+
+/* RECTÁNGULOS GRANDES */
+.rectangulo-contenedor{
+    width:700px;
+    max-width:90%;
+    height:220px;
+    border-radius:35px;
+    display:flex;
+    align-items:center;
+    padding:20px;
+    box-sizing:border-box;
+    transition:.4s;
+}
+
+.rectangulo-contenedor:hover{
+    transform:scale(1.03);
+}
+
+/* COLORES */
+.rec-morado{
+    background-color:#c3b7d1;
+}
+
+.rec-azul{
+    background-color:#0ea5e9;
+}
+
+.rec-verde{
+    background-color:#a3e635;
+}
+
+.rec-coral{
+    background-color:#f87171;
+}
+
+/* CONTENEDOR NEGRO INTERNO */
+.rectangulo-negro-interno{
+    background-color:#000;
+    width:260px;
+    height:100%;
+    border-radius:25px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:15px;
+}
+
+/* IMÁGENES */
+.rectangulo-negro-interno img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+}
+
+/* VISTA DE DETALLE (PÁGINA SECUNDARIA SIMULADA) */
+.vista-detalle {
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+}
+
+.contenedor-detalle {
+    max-width: 600px;
+    background: #111;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #333;
+}
+
+.img-grande {
+    width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
+    margin-bottom: 30px;
+}
+
+.btn-volver {
+    margin-top: 20px;
+}
+
+/* ANIMACIONES */
+@keyframes flotar{
+    0%{ transform:translateY(0px); }
+    50%{ transform:translateY(-15px); }
+    100%{ transform:translateY(0px); }
+}
+
+</style>
+</head>
+
+<body><div id="visorImagen" class="visor">
+    <span onclick="cerrarImagen()">&times;</span>
+    <img id="imagenGrande">
 </div>
 
+    <div id="pagina-principal" class="vista activa">
+        
+        <section class="hero">
+            <svg class="circuito">
+                <line x1="100" y1="100" x2="250" y2="100" stroke="white"/>
+                <line x1="250" y1="100" x2="250" y2="200" stroke="white"/>
+                <circle cx="250" cy="200" r="4" fill="white"/>
+            </svg>
+
+            <img src="logo-central.png" alt="Enlace Fatal" class="logo">
+
+            <h1 id="titulo-interactivo">ENLACE FATAL</h1>
+
+            <p class="descripcion">
+                Este juego es un juego agonal que se basa en la competencia
+                entre rivales. Su principal objetivo es derrotar al rival
+                conectando y ramificando su estructura hasta el tronco rival
+                y conquistarlo.
+            </p>
+            <div class="galeria-seis">
+
+    <img src="galeria1.jpg" onclick="abrirImagen(this.src)">
+    <img src="galeria2.jpg" onclick="abrirImagen(this.src)">
+    <img src="galeria3.jpg" onclick="abrirImagen(this.src)">
+    <img src="galeria4.jpg" onclick="abrirImagen(this.src)">
+    <img src="galeria5.jpg" onclick="abrirImagen(this.src)">
+    <img src="galeria6.jpg" onclick="abrirImagen(this.src)">
+
+</div>
+
+            <button onclick="mostrarGaleria()">
+                Ver Componentes
+            </button>
+        </section>
+
+        <section class="galeria" id="galeria">
+            <div class="card" onclick="irAPaginaDetalle('pieza1.png', 'Componente: Pieza 1')">
+                <img src="pieza1.png" alt="Pieza 1">
+            </div>
+
+            <div class="card" onclick="irAPaginaDetalle('pieza2.png', 'Componente: Pieza 2')">
+                <img src="pieza2.png" alt="Pieza 2">
+            </div>
+
+            <div class="card" onclick="irAPaginaDetalle('pieza3.png', 'Componente: Pieza 3')">
+                <img src="pieza3.png" alt="Pieza 3">
+            </div>
+
+            <div class="card" onclick="irAPaginaDetalle('pieza4.png', 'Componente: Pieza 4')">
+                <img src="pieza4.png" alt="Pieza 4">
+            </div>
+        </section>
+
+        <section class="seccion-rectangulos">
+            <div class="fila-rectangulos">
+                
+                <div class="rectangulo-contenedor rec-morado">
+                    <div class="rectangulo-negro-interno">
+                        <img src="pieza1.png" alt="Pieza 1">
+                    </div>
+                </div>
+
+                <div class="rectangulo-contenedor rec-azul">
+                    <div class="rectangulo-negro-interno">
+                        <img src="pieza2.png" alt="Pieza 2">
+                    </div>
+                </div>
+
+                <div class="rectangulo-contenedor rec-verde">
+                    <div class="rectangulo-negro-interno">
+                        <img src="pieza3.png" alt="Pieza 3">
+                    </div>
+                </div>
+
+                <div class="rectangulo-contenedor rec-coral">
+                    <div class="rectangulo-negro-interno">
+                        <img src="pieza4.png" alt="Pieza 4">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <div id="pagina-detalle" class="vista">
+        <section class="hero vista-detalle">
+            
+            <svg class="circuito">
+                <line x1="100" y1="100" x2="250" y2="100" stroke="white"/>
+                <line x1="250" y1="100" x2="250" y2="200" stroke="white"/>
+                <circle cx="250" cy="200" r="4" fill="white"/>
+            </svg>
+
+            <div class="contenedor-detalle">
+                <h2 id="detalle-titulo" style="margin-bottom: 20px; font-size: 2rem; letter-spacing: 2px;"></h2>
+                <img id="detalle-img" class="img-grande" src="" alt="Vista previa del componente">
+                <br>
+                <button class="btn-volver" onclick="irAPaginaPrincipal()">
+                    Volver a Enlace Fatal
+                </button>
+            </div>
+
+        </section>
+    </div>
+
 <script>
-const sketch = (p) => {
-    let nodos = [];
-    let lineas = [];
-    let tamanoHex = 25; 
 
-    // Sistema de Cámara Avanzado (Posición + Zoom)
-    let camaraX = 0, camaraY = 0;
-    let destinoCamX = 0, destinoCamY = 0;
-    let zoom = 1.0;
-    let destinoZoom = 1.0;
+// 1. DIVISIÓN DINÁMICA DE LETRAS PARA HOVER INDEPENDIENTE
+const titulo = document.getElementById("titulo-interactivo");
+const textoOriginal = titulo.innerText;
+titulo.innerHTML = ""; 
 
-    const COLORES_FIGMA = {
-        rojo: '#FF2400',
-        verde: '#00FF00',
-        morado: '#B04FFF',
-        azul: '#2B2BFF'
-    };
+textoOriginal.split("").forEach(letra => {
+    const span = document.createElement("span");
+    span.innerHTML = letra === " " ? "&nbsp;" : letra; 
+    titulo.appendChild(span);
+});
 
-    p.setup = () => {
-        p.createCanvas(p.windowWidth, p.windowHeight);
-        
-        // Centrar el mapa al inicio
-        camaraX = p.windowWidth / 2;
-        camaraY = p.windowHeight / 2;
-        destinoCamX = camaraX;
-        destinoCamY = camaraY;
 
-        // Nodo central estable
-        let nodoCentral = {
-            id: 0,
-            x: 0, 
-            y: 0,
-            tipo: 'tronco',
-            color: 'rgba(255, 255, 255, 0.15)', 
-            hijosMax: 6
-        };
-        nodos.push(nodoCentral);
-        
-        generarSeisIniciales(nodoCentral);
-    };
-
-    p.draw = () => {
-        p.background('#1E1E1E'); 
-        
-        // Suavizado cinemático de movimiento y zoom (Lerp)
-        camaraX = p.lerp(camaraX, destinoCamX, 0.1);
-        camaraY = p.lerp(camaraY, destinoCamY, 0.1);
-        zoom = p.lerp(zoom, destinoZoom, 0.1);
-
-        // Rejilla de fondo adaptada al Zoom
-        dibujarCuadrículaInfinita();
-
-        p.push();
-        // Aplicar transformaciones espaciales de la cámara
-        p.translate(camaraX, camaraY);
-        p.scale(zoom);
-
-        // Convertir coordenadas del mouse considerando posición y escala actual
-        let mouseMundialX = (p.mouseX - camaraX) / zoom;
-        let mouseMundialY = (p.mouseY - camaraY) / zoom;
-
-        // 1. RENDERIZAR CONEXIONES
-        p.strokeWeight(3 / zoom); // Mantiene el grosor estilizado sin importar el zoom
-        for (let l of lineas) {
-            let medX = (l.p1.x + l.p2.x) / 2;
-            let medY = (l.p1.y + l.p2.y) / 2;
-            
-            if (l.p1.tipo !== 'vacio' && l.p2.tipo !== 'vacio') {
-                p.stroke(255, 180); 
-            } else {
-                p.stroke(255, 45);  
-            }
-
-            p.noFill();
-            p.beginShape();
-            p.vertex(l.p1.x, l.p1.y);
-            p.vertex(medX + (l.p1.x < l.p2.x ? -10 : 10), (l.p1.y + medY) / 2); 
-            p.vertex(medX, medY);
-            p.vertex(l.p2.x, l.p2.y);
-            p.endShape();
-        }
-
-        // 2. RENDERIZAR NODOS
-        for (let n of nodos) {
-            if (n.tipo === 'vacio') {
-                p.stroke('rgba(255,255,255,0.25)');
-                p.strokeWeight(2 / zoom);
-                p.noFill();
-                dibujarHexagono(n.x, n.y, tamanoHex);
-                
-                // Hover adaptativo
-                if (p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
-                    p.fill('rgba(255,255,255,0.15)');
-                    dibujarHexagono(n.x, n.y, tamanoHex - 4);
-                }
-            } else if (n.tipo === 'tronco') {
-                p.stroke('rgba(255, 255, 255, 0.4)');
-                p.strokeWeight(2 / zoom);
-                p.fill(n.color);
-                dibujarHexagono(n.x, n.y, tamanoHex);
-                p.fill(255, 120);
-                p.noStroke();
-                p.ellipse(n.x, n.y, 6, 6);
-            } else {
-                p.stroke('#FFFFFF');
-                p.strokeWeight(2 / zoom);
-                p.fill(n.color);
-                dibujarHexagono(n.x, n.y, tamanoHex);
-                
-                p.fill(255, 200);
-                p.noStroke();
-                p.ellipse(n.x, n.y, 7, 7);
-            }
-        }
-        p.pop();
-
-        // Arrastre libre de pantalla (Moverse al arrastrar el fondo con clic)
-        if (p.mouseIsPressed) {
-            if (p.mouseButton === p.RIGHT || p.mouseButton === p.CENTER || !sobreCualquierNodo(mouseMundialX, mouseMundialY)) {
-                destinoCamX += p.mouseX - p.pmouseX;
-                destinoCamY += p.mouseY - p.pmouseY;
-            }
-        }
-    };
-
-    // Registrar Clics para activar nodos
-    p.mousePressed = () => {
-        if (p.mouseButton === p.LEFT) {
-            let mouseMundialX = (p.mouseX - camaraX) / zoom;
-            let mouseMundialY = (p.mouseY - camaraY) / zoom;
-
-            for (let n of nodos) {
-                if (n.tipo === 'vacio' && p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
-                    let opciones = [
-                        { color: COLORES_FIGMA.rojo, hijos: 1 },
-                        { color: COLORES_FIGMA.verde, hijos: 2 },
-                        { color: COLORES_FIGMA.azul, hijos: 3 },
-                        { color: COLORES_FIGMA.morado, hijos: 4 }
-                    ];
-                    
-                    let seleccion = p.random(opciones);
-                    n.tipo = 'color';
-                    n.color = seleccion.color;
-                    n.hijosMax = seleccion.hijos; 
-                    
-                    ramificar(n);
-                    break;
-                }
-            }
-        }
-    };
-
-    // Control del ZOOM mediante la rueda del mouse
-    p.mouseWheel = (event) => {
-        let factorZoom = event.delta > 0 ? 0.9 : 1.1;
-        destinoZoom = p.constrain(destinoZoom * factorZoom, 0.3, 3.0); // Límites del Zoom
-        return false; // Previene el scroll nativo de la web
-    };
-
-    // Helper para saber si el mouse está pulsando un nodo o el fondo vacío
-    function sobreCualquierNodo(mx, my) {
-        for (let n of nodos) {
-            if (p.dist(mx, my, n.x, n.y) < tamanoHex) return true;
-        }
-        return false;
+// 2. INTERRUPTOR DE GALERÍA
+function mostrarGaleria(){
+    const galeria = document.getElementById("galeria");
+    galeria.classList.toggle("mostrar");
+    
+    if(galeria.classList.contains("mostrar")) {
+        galeria.scrollIntoView({ behavior: 'smooth' });
     }
+}
 
-    function generarSeisIniciales(nodoPadre) {
-        let distancia = 90; 
-        for (let i = 0; i < 6; i++) {
-            let angulo = (p.TWO_PI / 6) * i + p.HALF_PI;
-            let nuevoX = nodoPadre.x + p.cos(angulo) * distancia;
-            let nuevoY = nodoPadre.y + p.sin(angulo) * distancia;
 
-            let nuevoNodo = {
-                id: nodos.length + i + 1,
-                x: nuevoX,
-                y: nuevoY,
-                tipo: 'vacio',
-                color: '#000000',
-                hijosMax: 0,
-                padreX: nodoPadre.x,
-                padreY: nodoPadre.y
-            };
+// 3. ENRUTAMIENTO DE VISTAS (Cambio y retorno de página)
+function irAPaginaDetalle(rutaImagen, tituloPieza) {
+    document.getElementById("pagina-principal").classList.remove("activa");
+    document.getElementById("pagina-detalle").classList.add("activa");
+    
+    document.getElementById("detalle-img").src = rutaImagen;
+    document.getElementById("detalle-titulo").innerText = tituloPieza;
+    
+    window.scrollTo(0, 0);
+}
 
-            nodos.push(nuevoNodo);
-            lineas.push({ p1: nodoPadre, p2: nuevoNodo });
-        }
-    }
+function irAPaginaPrincipal() {
+    document.getElementById("pagina-detalle").classList.remove("activa");
+    document.getElementById("pagina-principal").classList.add("activa");
+    
+    window.scrollTo(0, 0);
+}
 
-    function ramificar(nodoPadre) {
-        let cantidadRamas = nodoPadre.hijosMax;
-        let distancia = 90; 
-        
-        let anguloBase = p.atan2(nodoPadre.y - (nodoPadre.padreY || 0), nodoPadre.x - (nodoPadre.padreX || 0));
-        if(nodoPadre.padreX === undefined) anguloBase = p.random(p.TWO_PI);
-
-        let ramasCreadas = 0;
-        let intentosAngulo = 0;
-        
-        while (ramasCreadas < cantidadRamas && intentosAngulo < 12) {
-            let division = p.TWO_PI / 6;
-            let anguloPropuesto = anguloBase + (intentosAngulo * division) + p.random(-0.05, 0.05);
-            
-            let nuevoX = nodoPadre.x + p.cos(anguloPropuesto) * distancia;
-            let nuevoY = nodoPadre.y + p.sin(anguloPropuesto) * distancia;
-
-            let superpuesto = false;
-            for (let existente of nodos) {
-                if (p.dist(nuevoX, nuevoY, existente.x, existente.y) < tamanoHex * 2.1) {
-                    superpuesto = true;
-                    break;
-                }
-            }
-
-            if (!superpuesto) {
-                let nuevoNodo = {
-                    id: nodos.length + 1,
-                    x: nuevoX,
-                    y: nuevoY,
-                    tipo: 'vacio',
-                    color: '#000000',
-                    hijosMax: 0,
-                    padreX: nodoPadre.x,
-                    padreY: nodoPadre.y
-                };
-
-                nodos.push(nuevoNodo);
-                lineas.push({ p1: nodoPadre, p2: nuevoNodo });
-                ramasCreadas++;
-            }
-            intentosAngulo++;
-        }
-    }
-
-    function dibujarHexagono(x, y, radio) {
-        p.beginShape();
-        for (let a = 0; a < p.TWO_PI; a += p.TWO_PI / 6) {
-            let hx = x + p.cos(a + p.HALF_PI) * radio;
-            let hy = y + p.sin(a + p.HALF_PI) * radio;
-            p.vertex(hx, hy);
-        }
-        p.endShape(p.CLOSE);
-    }
-
-    function dibujarCuadrículaInfinita() {
-        p.stroke('rgba(255, 255, 255, 0.025)');
-        p.strokeWeight(1);
-        
-        let paso = 80 * zoom; 
-        let inicioX = camaraX % paso;
-        let inicioY = camaraY % paso;
-        
-        for (let x = inicioX; x < p.width; x += paso) {
-            p.line(x, 0, x, p.height);
-        }
-        for (let y = inicioY; y < p.height; y += paso) {
-            p.line(0, y, p.width, y);
-        }
-    }
-
-    p.windowWidthResized = () => {
-        p.resizeCanvas(p.windowWidth, p.windowHeight);
-    };
-};
-
-let miEnlaceFatal = new p5(sketch);
-document.oncontextmenu = function() { return false; }
 </script>
 
 </body>

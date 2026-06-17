@@ -1,31 +1,73 @@
-/* estilos.css */
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #1E1E1E;
-    overflow: hidden;
-    font-family: sans-serif;
-    user-select: none; /* Previene selecciones de texto incómodas al arrastrar */
+h1 span{
+    display:inline-block;
+    transition:.3s;
+    cursor:pointer;
 }
 
-canvas {
-    display: block;
+h1 span:nth-child(4n+1):hover{
+    color:#c3b7d1;
+    text-shadow:0 0 10px #c3b7d1,0 0 20px #c3b7d1;
 }
 
-#ui-instrucciones {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(0, 0, 0, 0.85);
-    padding: 12px 24px;
-    border-radius: 30px;
-    pointer-events: none; /* Permite que los clics pasen a través del div hacia el canvas */
-    font-size: 14px;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    line-height: 1.5;
-    z-index: 999;
+h1 span:nth-child(4n+2):hover{
+    color:#0ea5e9;
+    text-shadow:0 0 10px #0ea5e9,0 0 20px #0ea5e9;
+}
+
+h1 span:nth-child(4n+3):hover{
+    color:#a3e635;
+    text-shadow:0 0 10px #a3e635,0 0 20px #a3e635;
+}
+
+h1 span:nth-child(4n+4):hover{
+    color:#f87171;
+    text-shadow:0 0 10px #f87171,0 0 20px #f87171;
+}
+
+h1 span:hover{
+    transform:translateY(-8px) scale(1.15);
+}.galeria-seis{
+    width:100%;
+    max-width:1200px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+    margin:80px 0;
+}
+
+.galeria-seis img{
+    width:100%;
+    height:240px;
+    object-fit:cover;
+    border-radius:20px;
+    cursor:pointer;
+    transition:.4s;
+}
+
+.galeria-seis img:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 25px rgba(255,255,255,.4);
+}.visor{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.95);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.visor img{
+    max-width:90%;
+    max-height:90%;
+    border-radius:20px;
+}
+
+.visor span{
+    position:absolute;
+    top:20px;
+    right:40px;
+    color:white;
+    font-size:50px;
+    cursor:pointer;
 }
