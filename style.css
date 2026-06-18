@@ -167,5 +167,48 @@ h1 span:hover{
     100%{
         transform:translateY(0px);
     }
+}/* CAPA DE HEXÁGONOS DE FONDO */
+.formas-fondo {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
 }
+
+/* Diseño base de los hexágonos con transparencia y borde suave */
+.hexagono {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.015);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.05));
+    transition: border-color 0.5s;
+}
+
+/* Sutil toque verde neón para acoplarse a la estética del sitio */
+.hex-neon {
+    border-color: rgba(125, 255, 174, 0.12);
+    background-color: rgba(125, 255, 174, 0.005);
+    filter: drop-shadow(0 0 10px rgba(125, 255, 174, 0.05));
+}
+
+/* Movimiento y rotación individuales */
+.hex1 { width: 120px; height: 120px; top: 10%; left: 7%; animation: flotarHex1 22s ease-in-out infinite alternate; }
+.hex2 { width: 80px; height: 80px; top: 25%; right: 10%; animation: flotarHex2 18s ease-in-out infinite alternate; }
+.hex3 { width: 160px; height: 160px; top: 55%; left: 12%; animation: flotarHex3 26s ease-in-out infinite alternate; }
+.hex4 { width: 100px; height: 100px; top: 70%; right: 8%; animation: flotarHex4 20s ease-in-out infinite alternate; }
+.hex5 { width: 70px; height: 70px; top: 5%; right: 25%; animation: flotarHex5 15s ease-in-out infinite alternate; }
+.hex6 { width: 140px; height: 140px; top: 40%; right: 45%; animation: flotarHex6 28s ease-in-out infinite alternate; }
+
+/* Animaciones personalizadas de flotado y rotación */
+@keyframes flotarHex1 {
+    0% { transform: translate(0, 0) rotate(15deg); opacity: 0.4; }
+    50% { transform: translate(30px, -20px) rotate(45deg); opacity: 0.8; }
+    100% { transform: translate(-10px, 40px) rotate(75deg); opacity: 0.5; }
+}
+/* ... y el resto de las animaciones flotarHex2 a flotarHex6 ... */
 
