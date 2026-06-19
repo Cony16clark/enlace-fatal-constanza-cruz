@@ -447,17 +447,81 @@ button.btn-experiencia:hover {
 
 .card{
     width:220px;
-    transition:.4s;
+    height:220px;
+    border-radius:15px;
+    overflow:hidden;
     cursor: pointer;
+    background: #1a1a1a;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .card img{
     width:100%;
+    height:100%;
+    object-fit:cover;
     display:block;
+    filter: brightness(1.05) contrast(1.1) saturate(1.08) blur(0px);
 }
 
 .card:hover{
     transform:scale(1.08);
+    box-shadow: 0 15px 40px rgba(125, 47, 255, 0.4);
+}
+
+.visor-galeria {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.visor-galeria.activo {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.cerrar-visor {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 50px;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+    z-index: 10000;
+}
+
+.cerrar-visor:hover {
+    transform: scale(1.2);
+    color: #7d2fff;
+}
+
+#imagenGaleriaCompleta {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+    filter: brightness(1.08) contrast(1.12) saturate(1.1);
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
     filter:
     drop-shadow(0 0 8px #7dffae)
     drop-shadow(0 0 20px #7dffae);
