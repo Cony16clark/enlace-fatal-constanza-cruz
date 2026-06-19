@@ -111,13 +111,13 @@
                 
                 <div class="rectangulo-contenedor rec-morado">
                     <div class="rectangulo-negro-interno">
-                        <img src="pieza1.png" alt="Pieza 1">
+                        <img src="imagenes/IMG_20260420_105314.jpg" alt="Imagen 1">
                     </div>
                 </div>
 
                 <div class="rectangulo-contenedor rec-azul">
                     <div class="rectangulo-negro-interno">
-                        <img src="pieza2.png" alt="Pieza 2">
+                        <img src="imagenes/IMG_20260430_123950.jpg" alt="Imagen 2">
                     </div>
                     <div class="rectangulo-texto">
                         las piezas son fundamentales para el juego siendo las que se encargan de desplazarnos al conectar para infectar a nuestro oponente
@@ -126,13 +126,13 @@
 
                 <div class="rectangulo-contenedor rec-verde">
                     <div class="rectangulo-negro-interno">
-                        <img src="pieza3.png" alt="Pieza 3">
+                        <img src="imagenes/IMG_20260430_125545.jpg" alt="Imagen 3">
                     </div>
                 </div>
 
                 <div class="rectangulo-contenedor rec-coral">
                     <div class="rectangulo-negro-interno">
-                        <img src="pieza4.png" alt="Pieza 4">
+                        <img src="imagenes/IMG_20260430_132727.jpg" alt="Imagen 4">
                     </div>
                     <div class="rectangulo-texto">
                         el tablero modular nace de la necesidad de que no haya desventaja a la hora de jugar debido a que si se juega de 3 en el tablero cuadrado siempre habrá alguien en desventaja
@@ -142,17 +142,38 @@
             </div>
         </section>
 
-        <div class="boton-experiencia-wrap">
-            <button class="btn-experiencia" onclick="window.open('expereincia%201/gemini-code-1781897404557.html', '_blank')">
-                <span class="btn-icon" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 2L16 2L22 8L22 16L16 22L8 22L2 16L2 8L8 2Z" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M12 6V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M6 12H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                Ver experiencia
-            </button>
+        <div class="fondo-bajo-rectangulos" id="fondoBajoRectangulos">
+            <section class="galeria-carrusel">
+                <h2>Galería de movimiento</h2>
+                <div class="carrusel-contenedor">
+                    <button class="carrusel-btn prev" onclick="moverCarrusel(-1)">‹</button>
+                    <div class="carrusel-track-wrapper">
+                        <div class="carrusel-track" id="carruselTrack">
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260420_105314.jpg" alt="Imagen 1"></div>
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260430_123950.jpg" alt="Imagen 2"></div>
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260430_125545.jpg" alt="Imagen 3"></div>
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260430_132727.jpg" alt="Imagen 4"></div>
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260504_112052.jpg" alt="Imagen 5"></div>
+                            <div class="carrusel-item"><img src="imagenes/IMG_20260504_112058.jpg" alt="Imagen 6"></div>
+                            <div class="carrusel-item"><img src="assets/conectando.jpg" alt="Imagen 7"></div>
+                        </div>
+                    </div>
+                    <button class="carrusel-btn next" onclick="moverCarrusel(1)">›</button>
+                </div>
+            </section>
+
+            <div class="boton-experiencia-wrap">
+                <button class="btn-experiencia" onclick="window.open('expereincia%201/gemini-code-1781897404557.html', '_blank')">
+                    <span class="btn-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 2L16 2L22 8L22 16L16 22L8 22L2 16L2 8L8 2Z" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M12 6V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M6 12H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    Ver experiencia
+                </button>
+            </div>
         </div>
 
     </div>
@@ -461,6 +482,58 @@ function irAPaginaPrincipal() {
             branchHexagon(hex);
         });
     });
+
+    const fondoBajoRectangulos = document.getElementById('fondoBajoRectangulos');
+    const rectangulosSection = document.querySelector('.seccion-rectangulos');
+    const carruselTrack = document.getElementById('carruselTrack');
+
+    function actualizarFondoAzul() {
+        if (!fondoBajoRectangulos || !rectangulosSection) return;
+        const rect = rectangulosSection.getBoundingClientRect();
+        const activar = rect.bottom <= window.innerHeight * 0.95;
+        fondoBajoRectangulos.classList.toggle('azul', activar);
+    }
+
+    function moverCarrusel(direccion) {
+        if (!carruselTrack) return;
+        const item = carruselTrack.querySelector('.carrusel-item');
+        if (!item) return;
+        const anchoItem = item.getBoundingClientRect().width + 16;
+        carruselTrack.scrollBy({ left: anchoItem * direccion, behavior: 'smooth' });
+    }
+
+    window.addEventListener('scroll', actualizarFondoAzul);
+    window.addEventListener('resize', actualizarFondoAzul);
+    actualizarFondoAzul();
+
+    let autoplayInterval = null;
+    function iniciarAutoplay() {
+        if (!carruselTrack) return;
+        autoplayInterval = setInterval(() => moverCarrusel(1), 3500);
+    }
+
+    function detenerAutoplay() {
+        if (autoplayInterval) {
+            clearInterval(autoplayInterval);
+            autoplayInterval = null;
+        }
+    }
+
+    if (carruselTrack) {
+        carruselTrack.addEventListener('mouseenter', detenerAutoplay);
+        carruselTrack.addEventListener('mouseleave', iniciarAutoplay);
+        iniciarAutoplay();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            detenerAutoplay();
+        } else {
+            iniciarAutoplay();
+        }
+    });
+
+    window.moverCarrusel = moverCarrusel;
 })();
 </script>
 

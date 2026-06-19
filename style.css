@@ -637,17 +637,116 @@ button.btn-experiencia:hover {
 .rec-verde{ background-color:#a3e635; }
 .rec-coral{ background-color:#f87171; }
 
+.fondo-bajo-rectangulos {
+    width: 100%;
+    background: transparent;
+    transition: background-color 0.4s ease;
+    padding-bottom: 40px;
+}
+
+.fondo-bajo-rectangulos.azul {
+    background-color: #0ea5e9;
+}
+
+.galeria-carrusel {
+    width: 100%;
+    padding: 40px 20px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.galeria-carrusel h2 {
+    color: #ffffff;
+    font-size: 1.75rem;
+    margin-bottom: 24px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.carrusel-contenedor {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.carrusel-track-wrapper {
+    overflow: hidden;
+    flex: 1;
+    border-radius: 30px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.carrusel-track {
+    display: flex;
+    gap: 16px;
+    padding: 18px;
+    transition: transform 0.4s ease;
+    scroll-behavior: smooth;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.carrusel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.carrusel-item {
+    min-width: 220px;
+    flex: 0 0 auto;
+    border-radius: 26px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.carrusel-item img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+}
+
+.carrusel-btn {
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #0d1f3f;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.carrusel-btn:hover {
+    transform: scale(1.05);
+    background-color: #ffffff;
+}
+
+@media (max-width: 900px) {
+    .carrusel-item { min-width: 180px; }
+    .carrusel-btn { width: 48px; height: 48px; font-size: 1.5rem; }
+}
+
+@media (max-width: 650px) {
+    .carrusel-contenedor { flex-direction: column; }
+    .carrusel-btn { width: 48px; height: 48px; }
+}
+
 /* CONTENEDOR NEGRO INTERNO */
 .rectangulo-negro-interno{
-    background-color:#000;
+    background-color: transparent;
     width:260px;
     height:100%;
     border-radius:25px;
     display:flex;
     justify-content:center;
     align-items:center;
-    padding:15px;
+    padding:0;
     flex-shrink: 0;
+    overflow:hidden;
 }
 
 /* TEXTO EN COLOR BLANCO */
@@ -661,10 +760,11 @@ button.btn-experiencia:hover {
 
 /* IMÁGENES */
 .rectangulo-negro-interno img{
-    max-width:100%;
-    max-height:100%;
-    object-fit:contain;
+    width:100%;
+    height:100%;
+    object-fit:cover;
 }
+
 
 /* VISTA DE DETALLE (PÁGINAS SECUNDARIAS SIMULADAS) */
 .vista-detalle {
