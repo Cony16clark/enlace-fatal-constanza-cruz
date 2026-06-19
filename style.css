@@ -522,10 +522,7 @@ button.btn-experiencia:hover {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
-    filter:
-    drop-shadow(0 0 8px #7dffae)
-    drop-shadow(0 0 20px #7dffae);
-}
+
 
 /* FONDO DECORATIVO CONSERVADO */
 .circuito{
