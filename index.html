@@ -75,12 +75,12 @@
             </p>
 
             <div class="galeria-seis">
-                <img src="galeria1.jpg" alt="Galería 1" onclick="abrirImagen(this.src)">
-                <img src="galeria2.jpg" alt="Galería 2" onclick="abrirImagen(this.src)">
-                <img src="galeria3.jpg" alt="Galería 3" onclick="abrirImagen(this.src)">
-                <img src="galeria4.jpg" alt="Galería 4" onclick="abrirImagen(this.src)">
-                <img src="galeria5.jpg" alt="Galería 5" onclick="abrirImagen(this.src)">
-                <img src="galeria6.jpg" alt="Galería 6" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260420_105314.jpg" alt="Galería 1" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260430_123950.jpg" alt="Galería 2" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260430_125545.jpg" alt="Galería 3" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260430_132727.jpg" alt="Galería 4" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260504_112052.jpg" alt="Galería 5" onclick="abrirImagen(this.src)">
+                <img src="imagenes/IMG_20260504_112058.jpg" alt="Galería 6" onclick="abrirImagen(this.src)">
             </div>
 
             <button onclick="mostrarGaleria()">
@@ -318,22 +318,9 @@ function irAPaginaPrincipal() {
         // Incrementar el contador de ramificaciones
         hex.dataset.branches = branches + 1;
 
-        // Determinar colores para la línea neón coincidiendo con el hexágono padre
-        let strokeColor = "rgba(255, 255, 255, 0.4)";
-        let shadowColor = "rgba(255, 255, 255, 0.5)";
-        if (hex.classList.contains("hex-morado")) {
-            strokeColor = "rgba(184, 77, 255, 0.7)";
-            shadowColor = "rgba(184, 77, 255, 0.9)";
-        } else if (hex.classList.contains("hex-azul")) {
-            strokeColor = "rgba(26, 83, 255, 0.7)";
-            shadowColor = "rgba(26, 83, 255, 0.9)";
-        } else if (hex.classList.contains("hex-verde")) {
-            strokeColor = "rgba(0, 255, 51, 0.7)";
-            shadowColor = "rgba(0, 255, 51, 0.9)";
-        } else if (hex.classList.contains("hex-coral")) {
-            strokeColor = "rgba(255, 51, 51, 0.7)";
-            shadowColor = "rgba(255, 51, 51, 0.9)";
-        }
+        // Determinar colores para la línea (blancas con resplandor blanco)
+        let strokeColor = "rgba(255, 255, 255, 0.85)";
+        let shadowColor = "rgba(255, 255, 255, 0.6)";
 
         // Crear la línea SVG de conexión
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -466,4 +453,4 @@ function irAPaginaPrincipal() {
 
 </body>
 </html>
-,Description:Se reescribió el index.html al 100% integrando el manejador onerror en el DOM para diagnóstico visual de excepciones y asegurando que las clases CSS de animación y el elemento SVG de líneas neón interactivo estén libres de errores.,Overwrite:true,TargetFile:C:\Users\USUARIO\.gemini\antigravity\scratch\enlace_fatal\index.html,toolAction:Guardando el código limpio y completo con el debugger onerror en la ruta scratch.,toolSummary:Escribir index.html completo con onerror debugger}
+,
