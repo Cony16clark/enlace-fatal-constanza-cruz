@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enlace Fatal - Árbol Infinito</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1E1E1E;
+            overflow: hidden;
+            font-family: sans-serif;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-instrucciones {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 12px 24px;
+            border-radius: 30px;
+            pointer-events: none;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.5;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-instrucciones">
+    👆 <b>Clic Izquierdo</b> en hexágonos vacíos para expandir | 🖱️ <b>Arrastrar Fondo</b> para mover la pantalla <br>
+    🎛️ <b>Rueda del Mouse</b> para hacer Zoom (Acercar / Alejar)
+</div>
+
+<script>
+const sketch = (p) => {
+    let nodos = [];
+    let lineas = [];
+    let tamanoHex = 25; 
+
+    // Sistema de Cámara Avanzado (Posición + Zoom)
+    let camaraX = 0, camaraY = 0;
+    let destinoCamX = 0, destinoCamY = 0;
+    let zoom = 1.0;
+    let destinoZoom = 1.0;
+
+    const COLORES_FIGMA = {
+        rojo: '#FF2400',
+        verde: '#00FF00',
+        morado: '#B04FFF',
+        azul: '#2B2BFF'
+    };
+
+    p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        
+        // Centrar el mapa al inicio
+        camaraX = p.windowWidth / 2;
+        camaraY = p.windowHeight / 2;
+        destinoCamX = camaraX;
+        destinoCamY = camaraY;
+
+        // Nodo central estable
+        let nodoCentral = {
+            id: 0,
+            x: 0, 
+            y: 0,
+            tipo: 'tronco',
+            color: 'rgba(255, 255, 255, 0.15)', 
+            hijosMax: 6
+        };
+        nodos.push(nodoCentral);
+        
+        generarSeisIniciales(nodoCentral);
+    };
+
+    p.draw = () => {
+        p.background('#1E1E1E'); 
+        
+        // Suavizado cinemático de movimiento y zoom (Lerp)
+        camaraX = p.lerp(camaraX, destinoCamX, 0.1);
+        camaraY = p.lerp(camaraY, destinoCamY, 0.1);
+        zoom = p.lerp(zoom, destinoZoom, 0.1);
+
+        // Rejilla de fondo adaptada al Zoom
+        dibujarCuadrículaInfinita();
+
+        p.push();
+        // Aplicar transformaciones espaciales de la cámara
+        p.translate(camaraX, camaraY);
+        p.scale(zoom);
+
+        // Convertir coordenadas del mouse considerando posición y escala actual
+        let mouseMundialX = (p.mouseX - camaraX) / zoom;
+        let mouseMundialY = (p.mouseY - camaraY) / zoom;
+
+        // 1. RENDERIZAR CONEXIONES
+        p.strokeWeight(3 / zoom); // Mantiene el grosor estilizado sin importar el zoom
+        for (let l of lineas) {
+            let medX = (l.p1.x + l.p2.x) / 2;
+            let medY = (l.p1.y + l.p2.y) / 2;
+            
+            if (l.p1.tipo !== 'vacio' && l.p2.tipo !== 'vacio') {
+                p.stroke(255, 180); 
+            } else {
+                p.stroke(255, 45);  
+            }
+
+            p.noFill();
+            p.beginShape();
+            p.vertex(l.p1.x, l.p1.y);
+            p.vertex(medX + (l.p1.x < l.p2.x ? -10 : 10), (l.p1.y + medY) / 2); 
+            p.vertex(medX, medY);
+            p.vertex(l.p2.x, l.p2.y);
+            p.endShape();
+        }
+
+        // 2. RENDERIZAR NODOS
+        for (let n of nodos) {
+            if (n.tipo === 'vacio') {
+                p.stroke('rgba(255,255,255,0.25)');
+                p.strokeWeight(2 / zoom);
+                p.noFill();
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                
+                // Hover adaptativo
+                if (p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
+                    p.fill('rgba(255,255,255,0.15)');
+                    dibujarHexagono(n.x, n.y, tamanoHex - 4);
+                }
+            } else if (n.tipo === 'tronco') {
+                p.stroke('rgba(255, 255, 255, 0.4)');
+                p.strokeWeight(2 / zoom);
+                p.fill(n.color);
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                p.fill(255, 120);
+                p.noStroke();
+                p.ellipse(n.x, n.y, 6, 6);
+            } else {
+                p.stroke('#FFFFFF');
+                p.strokeWeight(2 / zoom);
+                p.fill(n.color);
+                dibujarHexagono(n.x, n.y, tamanoHex);
+                
+                p.fill(255, 200);
+                p.noStroke();
+                p.ellipse(n.x, n.y, 7, 7);
+            }
+        }
+        p.pop();
+
+        // Arrastre libre de pantalla (Moverse al arrastrar el fondo con clic)
+        if (p.mouseIsPressed) {
+            if (p.mouseButton === p.RIGHT || p.mouseButton === p.CENTER || !sobreCualquierNodo(mouseMundialX, mouseMundialY)) {
+                destinoCamX += p.mouseX - p.pmouseX;
+                destinoCamY += p.mouseY - p.pmouseY;
+            }
+        }
+    };
+
+    // Registrar Clics para activar nodos
+    p.mousePressed = () => {
+        if (p.mouseButton === p.LEFT) {
+            let mouseMundialX = (p.mouseX - camaraX) / zoom;
+            let mouseMundialY = (p.mouseY - camaraY) / zoom;
+
+            for (let n of nodos) {
+                if (n.tipo === 'vacio' && p.dist(mouseMundialX, mouseMundialY, n.x, n.y) < tamanoHex) {
+                    let opciones = [
+                        { color: COLORES_FIGMA.rojo, hijos: 1 },
+                        { color: COLORES_FIGMA.verde, hijos: 2 },
+                        { color: COLORES_FIGMA.azul, hijos: 3 },
+                        { color: COLORES_FIGMA.morado, hijos: 4 }
+                    ];
+                    
+                    let seleccion = p.random(opciones);
+                    n.tipo = 'color';
+                    n.color = seleccion.color;
+                    n.hijosMax = seleccion.hijos; 
+                    
+                    ramificar(n);
+                    break;
+                }
+            }
+        }
+    };
+
+    // Control del ZOOM mediante la rueda del mouse
+    p.mouseWheel = (event) => {
+        let factorZoom = event.delta > 0 ? 0.9 : 1.1;
+        destinoZoom = p.constrain(destinoZoom * factorZoom, 0.3, 3.0); // Límites del Zoom
+        return false; // Previene el scroll nativo de la web
+    };
+
+    // Helper para saber si el mouse está pulsando un nodo o el fondo vacío
+    function sobreCualquierNodo(mx, my) {
+        for (let n of nodos) {
+            if (p.dist(mx, my, n.x, n.y) < tamanoHex) return true;
+        }
+        return false;
+    }
+
+    function generarSeisIniciales(nodoPadre) {
+        let distancia = 90; 
+        for (let i = 0; i < 6; i++) {
+            let angulo = (p.TWO_PI / 6) * i + p.HALF_PI;
+            let nuevoX = nodoPadre.x + p.cos(angulo) * distancia;
+            let nuevoY = nodoPadre.y + p.sin(angulo) * distancia;
+
+            let nuevoNodo = {
+                id: nodos.length + i + 1,
+                x: nuevoX,
+                y: nuevoY,
+                tipo: 'vacio',
+                color: '#000000',
+                hijosMax: 0,
+                padreX: nodoPadre.x,
+                padreY: nodoPadre.y
+            };
+
+            nodos.push(nuevoNodo);
+            lineas.push({ p1: nodoPadre, p2: nuevoNodo });
+        }
+    }
+
+    function ramificar(nodoPadre) {
+        let cantidadRamas = nodoPadre.hijosMax;
+        let distancia = 90; 
+        
+        let anguloBase = p.atan2(nodoPadre.y - (nodoPadre.padreY || 0), nodoPadre.x - (nodoPadre.padreX || 0));
+        if(nodoPadre.padreX === undefined) anguloBase = p.random(p.TWO_PI);
+
+        let ramasCreadas = 0;
+        let intentosAngulo = 0;
+        
+        while (ramasCreadas < cantidadRamas && intentosAngulo < 12) {
+            let division = p.TWO_PI / 6;
+            let anguloPropuesto = anguloBase + (intentosAngulo * division) + p.random(-0.05, 0.05);
+            
+            let nuevoX = nodoPadre.x + p.cos(anguloPropuesto) * distancia;
+            let nuevoY = nodoPadre.y + p.sin(anguloPropuesto) * distancia;
+
+            let superpuesto = false;
+            for (let existente of nodos) {
+                if (p.dist(nuevoX, nuevoY, existente.x, existente.y) < tamanoHex * 2.1) {
+                    superpuesto = true;
+                    break;
+                }
+            }
+
+            if (!superpuesto) {
+                let nuevoNodo = {
+                    id: nodos.length + 1,
+                    x: nuevoX,
+                    y: nuevoY,
+                    tipo: 'vacio',
+                    color: '#000000',
+                    hijosMax: 0,
+                    padreX: nodoPadre.x,
+                    padreY: nodoPadre.y
+                };
+
+                nodos.push(nuevoNodo);
+                lineas.push({ p1: nodoPadre, p2: nuevoNodo });
+                ramasCreadas++;
+            }
+            intentosAngulo++;
+        }
+    }
+
+    function dibujarHexagono(x, y, radio) {
+        p.beginShape();
+        for (let a = 0; a < p.TWO_PI; a += p.TWO_PI / 6) {
+            let hx = x + p.cos(a + p.HALF_PI) * radio;
+            let hy = y + p.sin(a + p.HALF_PI) * radio;
+            p.vertex(hx, hy);
+        }
+        p.endShape(p.CLOSE);
+    }
+
+    function dibujarCuadrículaInfinita() {
+        p.stroke('rgba(255, 255, 255, 0.025)');
+        p.strokeWeight(1);
+        
+        let paso = 80 * zoom; 
+        let inicioX = camaraX % paso;
+        let inicioY = camaraY % paso;
+        
+        for (let x = inicioX; x < p.width; x += paso) {
+            p.line(x, 0, x, p.height);
+        }
+        for (let y = inicioY; y < p.height; y += paso) {
+            p.line(0, y, p.width, y);
+        }
+    }
+
+    p.windowWidthResized = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+};
+
+let miEnlaceFatal = new p5(sketch);
+document.oncontextmenu = function() { return false; }
+</script>
+
+</body>
+</html>
